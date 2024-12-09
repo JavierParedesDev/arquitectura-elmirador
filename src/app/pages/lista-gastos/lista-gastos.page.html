@@ -1,0 +1,143 @@
+<div class="header">
+  <ion-icon slot="start" name="menu"></ion-icon>
+  <div>
+    <ion-title>EL</ion-title>
+    <ion-title>MIRA</ion-title>
+    <ion-title>DOR</ion-title>
+  </div>
+  <ion-title class="subtitulo">GESTION DE GASTOS</ion-title>
+</div>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <ion-title class="ion-text-center ion-padding">LISTA DE GASTOS</ion-title>
+
+  <div class="search">
+    <div>
+      <input type="search" placeholder="Buscar" [(ngModel)]="searchTerm" (input)="filtrarGastos()">
+      <button (click)="filtrarGastos()">BUSCAR</button>
+    </div>
+  </div>
+  <ion-item>
+    <ion-label>Filtrar por estado</ion-label>
+    <ion-select [(ngModel)]="filterPagado" (ionChange)="filtrarGastos()">
+      <ion-select-option value="">Todos</ion-select-option>
+      <ion-select-option value="pagado">Pagado</ion-select-option>
+      <ion-select-option value="no-pagado">No Pagado</ion-select-option>
+    </ion-select>
+  </ion-item>
+  <ion-item>
+    <ion-label>Filtrar por mes</ion-label>
+    <ion-select [(ngModel)]="mesFiltrar" (ionChange)="filtrarGastos()">
+      <ion-select-option value="">Todos</ion-select-option>
+      <ion-select-option value="01">Enero</ion-select-option>
+      <ion-select-option value="02">Febrero</ion-select-option>
+      <ion-select-option value="03">Marzo</ion-select-option>
+      <ion-select-option value="04">Abril</ion-select-option>
+      <ion-select-option value="05">Mayo</ion-select-option>
+      <ion-select-option value="06">Junio</ion-select-option>
+      <ion-select-option value="07">Julio</ion-select-option>
+      <ion-select-option value="08">Agosto</ion-select-option>
+      <ion-select-option value="09">Septiembre</ion-select-option>
+      <ion-select-option value="10">Octubre</ion-select-option>
+      <ion-select-option value="11">Noviembre</ion-select-option>
+      <ion-select-option value="12">Diciembre</ion-select-option>
+    </ion-select>
+  </ion-item>
+  <ion-item>
+    <ion-label>Filtrar por año</ion-label>
+    <ion-select [(ngModel)]="anioFiltrar" (ionChange)="filtrarGastos()">
+      <ion-select-option value="">Todos</ion-select-option>
+      <ion-select-option value="2023">2023</ion-select-option>
+      <ion-select-option value="2024">2024</ion-select-option>
+      <ion-select-option value="2025">2025</ion-select-option>
+      <!-- Agrega más años según sea necesario -->
+    </ion-select>
+  </ion-item>
+  
+  <div class="lista-contenido">
+    <div class="datos" *ngFor="let gasto of filteredGastos; let i = index">
+      <div class="depto">
+        <h1>{{ gasto.departamento }}</h1>
+        <p>DEPARTAMENTO</p> <!-- Mostramos el departamento -->
+      </div>
+      <div class="info-gasto">
+        <p [ngClass]="gasto.pagado ? 'pagado' : 'no-pagado'">
+          {{ gasto.pagado ? 'PAGADO......' : 'NO PAGADO' }}
+        </p>
+        <p class="monto">${{ gasto.monto }}</p>
+        <p class="fecha">{{ gasto.mes }}-{{ gasto.anio }}</p>
+      </div>
+      <button (click)="abrirModalEdicion(i)">
+        <ion-icon name="create-outline"></ion-icon> Editar
+      </button>
+    </div>
+  </div>
+
+  <!-- Botón para abrir el modal de agregar gasto -->
+  <button id="open-modal" class="agregar-gastos">AGREGAR GASTOS</button>
+
+  <!-- Modal para agregar nuevo gasto -->
+  <ion-modal trigger="open-modal" [initialBreakpoint]="1" [breakpoints]="[0, 1]">
+    <ng-template>
+      <div class="block">
+        <div class="titulo-modal">
+          <ion-title class="ion-text-center ion-padding">AGREGAR GASTOS</ion-title>
+        </div>
+        <div class="formulario-div">
+          <form #addForm="ngForm" (ngSubmit)="agregarGasto(addForm)">
+        
+            <label>DEPARTAMENTO</label>
+            <input name="departamento" type="text" ngModel required> <!-- Campo departamento agregado -->
+
+            <label>MES</label>
+            <input name="mes" type="text" ngModel required>
+
+            <label>AÑO</label>
+            <input name="anio" type="text" ngModel required>
+
+            <label>MONTO</label>
+            <input name="monto" type="number" ngModel required>
+
+            <ion-checkbox name="pagado" [(ngModel)]="nuevoGasto.pagado" labelPlacement="end" justify="start">Pagado</ion-checkbox>
+
+            <ion-button class="boton-modal" expand="block" type="submit">AGREGAR GASTOS</ion-button>
+          </form>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+  
+  <!-- Modal para editar un gasto -->
+  <ion-modal [isOpen]="isEditModalOpen" [initialBreakpoint]="1" [breakpoints]="[0, 1]" (ionModalDidDismiss)="cerrarModal()">
+    <ng-template>
+      <div class="block">
+        <div class="titulo-modal">
+          <ion-title class="ion-text-center ion-padding">EDITAR GASTO</ion-title>
+        </div>
+        <div class="formulario-div">
+          <form #editForm="ngForm" (ngSubmit)="guardarCambios(editForm)">
+            <label>DEPARTAMENTO</label>
+            <input  name="departamento" type="text" [(ngModel)]="gastoEditable.departamento" required> <!-- Campo departamento en editar -->
+
+            <label>MES</label>
+            <input  name="mes" type="text" [(ngModel)]="gastoEditable.mes" required>
+
+            <label>AÑO</label>
+            <input  name="anio" type="text" [(ngModel)]="gastoEditable.anio" required>
+
+            <label>MONTO</label>
+            <input  name="monto" type="number" [(ngModel)]="gastoEditable.monto" required>
+
+            <ion-checkbox name="pagado" [(ngModel)]="gastoEditable.pagado" labelPlacement="end" justify="start">Pagado</ion-checkbox>
+
+            <ion-button class="boton-modal" expand="block" type="submit">GUARDAR</ion-button>
+          </form>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
